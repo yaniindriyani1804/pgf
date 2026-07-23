@@ -3,7 +3,7 @@ html_content = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dual Live Camera Streaming</title>
+    <title>Live Kamera Laptop</title>
     <style>
         body {
             margin: 0;
@@ -11,112 +11,98 @@ html_content = """<!DOCTYPE html>
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #121212;
             color: #e0e0e0;
         }
         h1 {
-            margin: 20px 0;
-            font-size: 24px;
+            margin-bottom: 20px;
             color: #ffffff;
         }
-        .container {
-            display: flex;
+        .camera-container {
             width: 100%;
-            max-width: 1400px;
-            height: 75vh;
-            gap: 20px;
-            padding: 0 20px;
-            box-sizing: border-box;
-        }
-        .camera-box {
-            flex: 1;
+            max-width: 800px;
             background-color: #1e1e1e;
             border: 2px solid #333;
             border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
         }
-        .camera-title {
+        .camera-header {
             background-color: #2a2a2a;
             padding: 12px;
             text-align: center;
             font-weight: 600;
-            font-size: 16px;
             border-bottom: 1px solid #333;
         }
-        .camera-content {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .video-wrapper {
             position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* Rasio 16:9 */
             background-color: #000;
         }
-        video, iframe {
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border: none;
         }
         .status {
-            padding: 10px;
+            margin-top: 15px;
             font-size: 14px;
             color: #888;
+            text-align: center;
+            padding: 0 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Sistem Monitoring Kamera Ganda</h1>
-    <div class="container">
-        <!-- Kamera Kiri: Kamera Laptop (Webcam) -->
-        <div class="camera-box">
-            <div class="camera-title">🟢 Kamera Laptop (Lokal)</div>
-            <div class="camera-content">
-                <video id="localVideo" autoplay playsinline muted></video>
-            </div>
-        </div>
-
-        <!-- Kamera Kanan: IP Camera -->
-        <div class="camera-box">
-            <div class="camera-title">🌐 Kamera IP (10.101.209.96)</div>
-            <div class="camera-content">
-                <!-- Frame untuk menampilkan IP camera. Jika kamera menggunakan format MJPEG langsung, 
-                     Anda bisa mengganti tag <iframe> ini dengan tag <img> seperti:
-                     <img src="http://10.101.209.96/video.mjpg" style="width:100%; height:100%; object-fit:cover;">
-                -->
-                <iframe src="http://10.101.209.96/" allow="camera; microphone; fullscreen; autoplay"></iframe>
-            </div>
+    <h1>Monitoring Kamera Laptop</h1>
+    
+    <div class="camera-container">
+        <div class="camera-header">🟢 Kamera Lokal Aktif</div>
+        <div class="video-wrapper">
+            <video id="webcam" autoplay playsinline muted></video>
         </div>
     </div>
-    <div class="status">Koneksi Secure diaktifkan. Harap izinkan akses kamera di browser Anda.</div>
+    
+    <div class="status" id="statusText">Meminta akses kamera... Pastikan Anda mengizinkan (Allow) akses pada pop-up browser.</div>
 
     <script>
-        // Fungsi untuk meminta izin dan menampilkan kamera lokal
-        async function startLocalCamera() {
+        async function startCamera() {
+            const videoElement = document.getElementById('webcam');
+            const statusText = document.getElementById('statusText');
+
             try {
-                // Meminta akses video dengan resolusi ideal
+                // Meminta akses kamera dengan resolusi ideal 720p
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
                     audio: false 
                 });
-                const videoElement = document.getElementById('localVideo');
+                
                 videoElement.srcObject = stream;
+                statusText.innerHTML = "✅ Kamera berhasil terhubung dan berjalan dengan aman.";
+                statusText.style.color = "#4CAF50";
             } catch (error) {
-                console.error('Error accessing local camera:', error);
-                alert('Tidak dapat mengakses kamera laptop. Pastikan Anda telah memberikan izin kamera (Allow) pada pop-up browser.');
+                console.error('Error accessing camera:', error);
+                statusText.innerHTML = "❌ Gagal mengakses kamera. Pastikan perangkat memiliki kamera dan izin (Allow) telah diberikan.";
+                statusText.style.color = "#f44336";
             }
         }
 
-        // Jalankan saat halaman siap
-        window.addEventListener('DOMContentLoaded', startLocalCamera);
+        // Menjalankan fungsi saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', startCamera);
     </script>
 </body>
 </html>"""
 
-file_path = "/mnt/data/kamera_live_streaming.html"
+file_path = "/mnt/data/kamera_laptop_only.html"
 with open(file_path, "w", encoding="utf-8") as f:
     f.write(html_content)
 
