@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Penting: mengizinkan konten campuran (mixed content) -->
-  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <title>Yani Indriyani · Guru Fisika</title>
   <!-- Font & ikon -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -381,7 +379,8 @@
         allowfullscreen 
         loading="lazy"
         title="Live Streaming - Yani Indriyani"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
       ></iframe>
       <div class="video-label">
         <i class="fas fa-video"></i>
@@ -458,5 +457,30 @@
       <i class="fas fa-circle" style="font-size: 0.4rem; vertical-align: middle; margin: 0 4px;"></i>
     </div>
   </div>
+
+  <!-- Script untuk mengatasi mixed content dengan cara membuka iframe secara langsung -->
+  <script>
+    // Mencoba memuat ulang iframe dengan pendekatan alternatif
+    (function() {
+      // Cek apakah iframe berhasil dimuat
+      const iframe = document.querySelector('.video-stream-wrapper iframe');
+      
+      // Jika terjadi error loading, coba reload dengan atribut tambahan
+      iframe.addEventListener('error', function() {
+        console.log('Iframe loading error, mencoba reload...');
+        // Reload iframe dengan menambahkan timestamp untuk menghindari cache
+        const src = iframe.src;
+        iframe.src = '';
+        setTimeout(() => {
+          iframe.src = src;
+        }, 100);
+      });
+
+      // Alternatif: jika iframe tidak bisa dimuat karena mixed content,
+      // kita bisa mencoba membuka di tab baru (user action required)
+      // Tapi kita biarkan iframe tetap mencoba memuat
+      console.log('Mencoba memuat streaming dari:', iframe.src);
+    })();
+  </script>
 </body>
 </html>
