@@ -56,6 +56,23 @@
       position: relative;
     }
 
+    /* Menggunakan object sebagai alternatif iframe untuk mixed content */
+    .video-stream-wrapper object {
+      display: block;
+      width: 100%;
+      height: 320px;
+      border: none;
+      background: #e8d6cc;
+    }
+
+    .video-stream-wrapper embed {
+      display: block;
+      width: 100%;
+      height: 320px;
+      border: none;
+      background: #e8d6cc;
+    }
+
     .video-stream-wrapper iframe {
       display: block;
       width: 100%;
@@ -67,16 +84,28 @@
     .video-label {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
+      justify-content: space-between;
       background: #f7ece6;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 1.2rem;
       font-size: 0.9rem;
       font-weight: 500;
       color: #6a4f42;
       border-top: 1px solid #eeded4;
       letter-spacing: 0.3px;
       flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .video-label-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .video-label-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .video-label i {
@@ -100,21 +129,52 @@
       100% { opacity: 1; transform: scale(1); }
     }
 
-    /* peringatan jika iframe gagal */
+    .btn-stream {
+      background: #b48a78;
+      color: white;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-stream:hover {
+      background: #9c7563;
+      transform: scale(1.02);
+    }
+
+    .btn-stream i {
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    /* peringatan jika stream gagal */
     .video-fallback {
       display: none;
-      padding: 1.5rem;
+      padding: 2rem;
       text-align: center;
       background: #fcf4ef;
       color: #7a5f52;
-      font-size: 0.95rem;
     }
 
     .video-fallback i {
-      font-size: 2rem;
+      font-size: 3rem;
       color: #b48a78;
       display: block;
       margin-bottom: 0.5rem;
+    }
+
+    .video-fallback .btn-stream {
+      margin-top: 1rem;
+      padding: 0.6rem 1.5rem;
+      font-size: 1rem;
     }
 
     /* header profil */
@@ -349,6 +409,8 @@
     /* responsif */
     @media (max-width: 750px) {
       .card { padding: 1.8rem; }
+      .video-stream-wrapper object,
+      .video-stream-wrapper embed,
       .video-stream-wrapper iframe { height: 220px; }
       .profile-header { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
       .avatar { width: 100px; height: 100px; font-size: 3rem; }
@@ -358,10 +420,17 @@
       .social-links { flex-direction: column; align-items: stretch; }
       .social-buttons { justify-content: center; }
       .footer-note { text-align: center; }
+      .video-label {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
     }
 
     @media (max-width: 480px) {
       .card { padding: 1.2rem; border-radius: 32px; }
+      .video-stream-wrapper object,
+      .video-stream-wrapper embed,
       .video-stream-wrapper iframe { height: 180px; }
       .title-group h1 { font-size: 1.8rem; }
       .info-item { padding: 0.4rem 0.8rem; font-size: 0.9rem; }
@@ -373,20 +442,37 @@
   <div class="card">
 
     <!-- ===== VIDEO STREAMING (atas) ===== -->
-    <div class="video-stream-wrapper">
-      <iframe 
-        src="http://10.101.209.96/" 
-        allowfullscreen 
-        loading="lazy"
-        title="Live Streaming - Yani Indriyani"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-      ></iframe>
+    <div class="video-stream-wrapper" id="streamWrapper">
+      <!-- Menggunakan object sebagai alternatif untuk menghindari mixed content blocking -->
+      <object 
+        id="streamObject"
+        data="http://10.101.209.96/" 
+        type="text/html"
+        width="100%" 
+        height="320"
+      >
+        <!-- Fallback jika object tidak bisa dimuat -->
+        <div class="video-fallback" style="display:block; padding: 2rem; text-align:center; background: #fcf4ef; color: #7a5f52;">
+          <i class="fas fa-video-slash"></i>
+          <p style="margin: 0.5rem 0;"><strong>Streaming tidak dapat dimuat</strong></p>
+          <p style="font-size: 0.9rem; margin-bottom: 1rem;">Klik tombol di bawah untuk membuka streaming di tab baru</p>
+          <a href="http://10.101.209.96/" target="_blank" class="btn-stream">
+            <i class="fas fa-external-link-alt"></i> Buka Streaming
+          </a>
+        </div>
+      </object>
+      
       <div class="video-label">
-        <i class="fas fa-video"></i>
-        <span class="live-dot"></span>
-        <span>Live Streaming · <strong>http://10.101.209.96/</strong></span>
-        <i class="fas fa-chevron-right" style="font-size: 0.7rem; opacity: 0.6;"></i>
+        <div class="video-label-left">
+          <i class="fas fa-video"></i>
+          <span class="live-dot"></span>
+          <span>Live Streaming · <strong>http://10.101.209.96/</strong></span>
+        </div>
+        <div class="video-label-right">
+          <a href="http://10.101.209.96/" target="_blank" class="btn-stream">
+            <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+          </a>
+        </div>
       </div>
     </div>
 
@@ -458,28 +544,51 @@
     </div>
   </div>
 
-  <!-- Script untuk mengatasi mixed content dengan cara membuka iframe secara langsung -->
   <script>
-    // Mencoba memuat ulang iframe dengan pendekatan alternatif
+    // Script untuk mencoba berbagai metode memuat streaming
     (function() {
-      // Cek apakah iframe berhasil dimuat
-      const iframe = document.querySelector('.video-stream-wrapper iframe');
+      const streamUrl = 'http://10.101.209.96/';
+      const wrapper = document.getElementById('streamWrapper');
       
-      // Jika terjadi error loading, coba reload dengan atribut tambahan
-      iframe.addEventListener('error', function() {
-        console.log('Iframe loading error, mencoba reload...');
-        // Reload iframe dengan menambahkan timestamp untuk menghindari cache
-        const src = iframe.src;
-        iframe.src = '';
-        setTimeout(() => {
-          iframe.src = src;
-        }, 100);
+      // Fungsi untuk mencoba memuat dengan iframe sebagai alternatif
+      function tryIframe() {
+        // Cek apakah object gagal dimuat
+        const object = document.getElementById('streamObject');
+        if (object) {
+          // Jika object gagal, coba dengan iframe
+          setTimeout(() => {
+            // Cek apakah object berhasil dimuat dengan melihat apakah ada konten di dalamnya
+            try {
+              // Jika object tidak memiliki konten, coba dengan iframe
+              const iframe = document.createElement('iframe');
+              iframe.src = streamUrl;
+              iframe.width = '100%';
+              iframe.height = '320';
+              iframe.style.border = 'none';
+              iframe.style.background = '#e8d6cc';
+              iframe.setAttribute('allowfullscreen', '');
+              iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals');
+              iframe.setAttribute('allow', 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture');
+              
+              // Ganti object dengan iframe
+              const parent = object.parentNode;
+              parent.replaceChild(iframe, object);
+              console.log('Mengganti object dengan iframe untuk streaming');
+            } catch(e) {
+              console.log('Gagal mengganti dengan iframe:', e);
+            }
+          }, 2000);
+        }
+      }
+      
+      // Jalankan setelah halaman dimuat
+      window.addEventListener('load', function() {
+        console.log('Mencoba memuat streaming dari:', streamUrl);
+        tryIframe();
       });
-
-      // Alternatif: jika iframe tidak bisa dimuat karena mixed content,
-      // kita bisa mencoba membuka di tab baru (user action required)
-      // Tapi kita biarkan iframe tetap mencoba memuat
-      console.log('Mencoba memuat streaming dari:', iframe.src);
+      
+      // Jika pengguna mengklik tombol "Buka di Tab Baru", sudah langsung terbuka
+      console.log('Streaming siap dimuat. Jika tidak muncul, klik tombol "Buka di Tab Baru"');
     })();
   </script>
 </body>
