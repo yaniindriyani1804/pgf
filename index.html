@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Penting: mengizinkan konten campuran (mixed content) -->
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <title>Yani Indriyani · Guru Fisika</title>
   <!-- Font & ikon -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -76,6 +78,7 @@
       color: #6a4f42;
       border-top: 1px solid #eeded4;
       letter-spacing: 0.3px;
+      flex-wrap: wrap;
     }
 
     .video-label i {
@@ -97,6 +100,23 @@
       0% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.4; transform: scale(0.8); }
       100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* peringatan jika iframe gagal */
+    .video-fallback {
+      display: none;
+      padding: 1.5rem;
+      text-align: center;
+      background: #fcf4ef;
+      color: #7a5f52;
+      font-size: 0.95rem;
+    }
+
+    .video-fallback i {
+      font-size: 2rem;
+      color: #b48a78;
+      display: block;
+      margin-bottom: 0.5rem;
     }
 
     /* header profil */
@@ -361,6 +381,7 @@
         allowfullscreen 
         loading="lazy"
         title="Live Streaming - Yani Indriyani"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
       ></iframe>
       <div class="video-label">
         <i class="fas fa-video"></i>
