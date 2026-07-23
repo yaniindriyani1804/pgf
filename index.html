@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Yani Indriyani · Guru Fisika · Live Streaming</title>
+    <title>Yani Indriyani · Guru Fisika · FaceMesh</title>
     <!-- Font & ikon -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- MediaPipe -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
@@ -65,6 +69,16 @@
             object-fit: cover;
         }
 
+        /* Canvas untuk FaceMesh overlay */
+        .video-stream-wrapper canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
         .video-placeholder {
             position: absolute;
             top: 0;
@@ -80,6 +94,7 @@
             gap: 1rem;
             padding: 2rem;
             text-align: center;
+            z-index: 2;
         }
 
         .video-placeholder i {
@@ -115,6 +130,7 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             gap: 0.8rem;
             flex-wrap: wrap;
+            z-index: 3;
         }
 
         .video-controls button {
@@ -159,6 +175,20 @@
 
         .video-controls .btn-success:hover {
             background: rgba(80, 180, 120, 0.7);
+        }
+
+        .video-controls .btn-facemesh {
+            background: rgba(100, 120, 220, 0.4);
+            border-color: rgba(100, 120, 220, 0.3);
+        }
+
+        .video-controls .btn-facemesh:hover {
+            background: rgba(100, 120, 220, 0.7);
+        }
+
+        .video-controls .btn-facemesh.active {
+            background: rgba(100, 220, 120, 0.5);
+            border-color: rgba(100, 220, 120, 0.4);
         }
 
         .video-label {
@@ -210,6 +240,21 @@
             0% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.4; transform: scale(0.8); }
             100% { opacity: 1; transform: scale(1); }
+        }
+
+        .facemesh-status {
+            font-size: 0.8rem;
+            color: #8a7a72;
+            background: #f0e4dc;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .facemesh-status i {
+            font-size: 0.7rem;
         }
 
         /* header profil */
@@ -470,6 +515,7 @@
         <!-- ===== VIDEO STREAMING KAMERA ===== -->
         <div class="video-stream-wrapper" id="streamWrapper">
             <video id="videoElement" autoplay playsinline muted></video>
+            <canvas id="faceMeshCanvas" width="1280" height="720"></canvas>
             
             <!-- Placeholder saat kamera belum aktif -->
             <div class="video-placeholder" id="videoPlaceholder">
@@ -486,8 +532,8 @@
                 <button id="btnStop" class="btn-danger" style="display:none;">
                     <i class="fas fa-stop"></i> Hentikan
                 </button>
-                <button id="btnMute" class="btn-mute">
-                    <i class="fas fa-microphone"></i> Mute
+                <button id="btnFaceMesh" class="btn-facemesh" style="display:none;">
+                    <i class="fas fa-user-astronaut"></i> FaceMesh
                 </button>
                 <button id="btnScreenshot">
                     <i class="fas fa-camera"></i> Screenshot
@@ -503,6 +549,9 @@
                 <span id="streamStatus">Streaming Belum Aktif</span>
             </div>
             <div class="video-label-right">
+                <span class="facemesh-status" id="faceMeshStatus">
+                    <i class="fas fa-user-astronaut"></i> FaceMesh: Off
+                </span>
                 <span style="font-size:0.8rem; opacity:0.7;">
                     <i class="fas fa-info-circle"></i> Kamera Bawaan
                 </span>
@@ -581,20 +630,26 @@
         (function() {
             // Elemen
             const video = document.getElementById('videoElement');
+            const canvas = document.getElementById('faceMeshCanvas');
+            const ctx = canvas.getContext('2d');
             const placeholder = document.getElementById('videoPlaceholder');
             const liveDot = document.getElementById('liveDot');
             const streamStatus = document.getElementById('streamStatus');
+            const faceMeshStatus = document.getElementById('faceMeshStatus');
             
             const btnStart = document.getElementById('btnStart');
             const btnStop = document.getElementById('btnStop');
-            const btnMute = document.getElementById('btnMute');
+            const btnFaceMesh = document.getElementById('btnFaceMesh');
             const btnScreenshot = document.getElementById('btnScreenshot');
 
             let stream = null;
             let isStreaming = false;
-            let isMuted = true; // Default muted untuk menghindari feedback
+            let faceMeshActive = false;
+            let faceMesh = null;
+            let camera = null;
+            let animationId = null;
 
-            // Fungsi update UI
+            // Update UI
             function updateUI(status) {
                 if (status === 'active') {
                     placeholder.style.display = 'none';
@@ -603,6 +658,7 @@
                     streamStatus.style.color = '#e05a4f';
                     btnStart.style.display = 'none';
                     btnStop.style.display = 'inline-flex';
+                    btnFaceMesh.style.display = 'inline-flex';
                     isStreaming = true;
                 } else {
                     placeholder.style.display = 'flex';
@@ -611,39 +667,208 @@
                     streamStatus.style.color = '#6a4f42';
                     btnStart.style.display = 'inline-flex';
                     btnStop.style.display = 'none';
+                    btnFaceMesh.style.display = 'none';
                     isStreaming = false;
+                    faceMeshActive = false;
+                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: Off';
+                    btnFaceMesh.classList.remove('active');
                 }
             }
 
-            // Mulai streaming
+            // ========== FACE MESH ==========
+            function initFaceMesh() {
+                faceMesh = new FaceMesh({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+                    }
+                });
+
+                faceMesh.setOptions({
+                    maxNumFaces: 1,
+                    refineLandmarks: true,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+
+                faceMesh.onResults((results) => {
+                    drawFaceMesh(results);
+                });
+            }
+
+            function drawFaceMesh(results) {
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (!faceMeshActive) {
+                    return;
+                }
+
+                // Draw mesh if face detected
+                if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                    // Draw face mesh connections
+                    const landmarks = results.multiFaceLandmarks[0];
+                    
+                    // Draw connections (mesh)
+                    ctx.strokeStyle = '#00ff88';
+                    ctx.lineWidth = 1;
+                    ctx.shadowColor = '#00ff88';
+                    ctx.shadowBlur = 4;
+
+                    // Draw all connections
+                    for (const connection of FaceMesh.FACEMESH_CONTOURS) {
+                        const start = landmarks[connection[0]];
+                        const end = landmarks[connection[1]];
+                        ctx.beginPath();
+                        ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
+                        ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
+                        ctx.stroke();
+                    }
+
+                    // Draw face mesh tessellation (more detailed)
+                    ctx.strokeStyle = 'rgba(255, 200, 100, 0.3)';
+                    ctx.lineWidth = 0.5;
+                    for (const connection of FaceMesh.FACEMESH_TESSELATION) {
+                        const start = landmarks[connection[0]];
+                        const end = landmarks[connection[1]];
+                        ctx.beginPath();
+                        ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
+                        ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
+                        ctx.stroke();
+                    }
+
+                    // Draw landmarks (dots)
+                    ctx.shadowBlur = 0;
+                    for (const landmark of landmarks) {
+                        const x = landmark.x * canvas.width;
+                        const y = landmark.y * canvas.height;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 2, 0, 2 * Math.PI);
+                        ctx.fillStyle = '#ff6b6b';
+                        ctx.fill();
+                        ctx.strokeStyle = '#ffd93d';
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+
+                    // Draw eye landmarks khusus
+                    ctx.fillStyle = '#4ecdc4';
+                    ctx.shadowColor = '#4ecdc4';
+                    ctx.shadowBlur = 8;
+                    for (const idx of [33, 133, 362, 263]) { // eye landmarks
+                        const landmark = landmarks[idx];
+                        const x = landmark.x * canvas.width;
+                        const y = landmark.y * canvas.height;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                    
+                    // Draw lips outline
+                    ctx.strokeStyle = '#ff6b6b';
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 6;
+                    for (const connection of FaceMesh.FACEMESH_LIPS) {
+                        const start = landmarks[connection[0]];
+                        const end = landmarks[connection[1]];
+                        ctx.beginPath();
+                        ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
+                        ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
+                        ctx.stroke();
+                    }
+
+                    // Reset shadow
+                    ctx.shadowBlur = 0;
+                    
+                    // Update status
+                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: <span style="color:#4ecdc4;">Active</span>';
+                } else {
+                    // No face detected
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.font = '20px Quicksand';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🔍 Tidak ada wajah terdeteksi', canvas.width/2, canvas.height/2);
+                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: <span style="color:#ff6b6b;">No Face</span>';
+                }
+            }
+
+            // Toggle FaceMesh
+            function toggleFaceMesh() {
+                if (!isStreaming) {
+                    alert('Mulai streaming terlebih dahulu untuk menggunakan FaceMesh');
+                    return;
+                }
+
+                faceMeshActive = !faceMeshActive;
+                
+                if (faceMeshActive) {
+                    btnFaceMesh.classList.add('active');
+                    btnFaceMesh.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: On';
+                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: <span style="color:#4ecdc4;">Active</span>';
+                    
+                    // Start face mesh processing
+                    if (faceMesh && camera) {
+                        // FaceMesh akan diproses melalui camera
+                    }
+                } else {
+                    btnFaceMesh.classList.remove('active');
+                    btnFaceMesh.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh';
+                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: Off';
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            // ========== STREAMING ==========
             async function startStream() {
                 try {
-                    // Minta akses kamera
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: 'user',
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
                         },
-                        audio: false // Audio dimatikan untuk menghindari feedback
+                        audio: false
                     });
 
-                    // Hubungkan stream ke video
                     video.srcObject = stream;
                     await video.play();
+                    
+                    // Set canvas size
+                    canvas.width = video.videoWidth || 1280;
+                    canvas.height = video.videoHeight || 720;
                     
                     updateUI('active');
                     console.log('Streaming kamera berhasil dimulai');
                     
-                    // Update status mute
-                    isMuted = true;
-                    btnMute.innerHTML = '<i class="fas fa-microphone-slash"></i> Unmute';
+                    // Inisialisasi FaceMesh
+                    initFaceMesh();
+                    
+                    // Setup camera untuk MediaPipe
+                    camera = new Camera(video, {
+                        onFrame: async () => {
+                            if (faceMeshActive && faceMesh) {
+                                try {
+                                    await faceMesh.send({image: video});
+                                } catch (err) {
+                                    // Silent error
+                                }
+                            }
+                        },
+                        width: 1280,
+                        height: 720
+                    });
+                    
+                    // Mulai camera (MediaPipe)
+                    try {
+                        await camera.start();
+                        console.log('FaceMesh camera started');
+                    } catch (err) {
+                        console.warn('FaceMesh camera start error:', err);
+                    }
                     
                 } catch (err) {
                     console.error('Error mengakses kamera:', err);
                     alert('Tidak dapat mengakses kamera. Pastikan kamera terhubung dan izin diberikan.\n\nError: ' + err.message);
                     
-                    // Tampilkan pesan error di placeholder
                     placeholder.querySelector('.status-text').textContent = '⚠️ Gagal Mengakses Kamera';
                     placeholder.querySelector('.sub-status').textContent = 'Pastikan kamera terhubung dan izin diberikan';
                     placeholder.querySelector('i').className = 'fas fa-exclamation-triangle';
@@ -653,39 +878,31 @@
 
             // Hentikan streaming
             function stopStream() {
+                // Stop FaceMesh
+                if (camera) {
+                    camera.stop();
+                    camera = null;
+                }
+                
                 if (stream) {
                     stream.getTracks().forEach(track => track.stop());
                     stream = null;
                 }
                 video.srcObject = null;
+                
+                faceMeshActive = false;
+                btnFaceMesh.classList.remove('active');
+                btnFaceMesh.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh';
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
                 updateUI('inactive');
                 console.log('Streaming dihentikan');
                 
-                // Reset placeholder
                 placeholder.querySelector('.status-text').textContent = 'Kamera belum diaktifkan';
                 placeholder.querySelector('.sub-status').textContent = 'Klik tombol "Mulai Streaming" untuk mengaktifkan kamera';
                 placeholder.querySelector('i').className = 'fas fa-camera';
                 placeholder.querySelector('i').style.color = '#b48a78';
-            }
-
-            // Mute/Unmute (sebenarnya untuk audio, tapi kita kontrol audio track)
-            function toggleMute() {
-                if (!stream) return;
-                
-                const audioTracks = stream.getAudioTracks();
-                if (audioTracks.length > 0) {
-                    audioTracks.forEach(track => {
-                        track.enabled = !track.enabled;
-                    });
-                    isMuted = !audioTracks[0].enabled;
-                } else {
-                    // Jika tidak ada audio track, toggle mute status untuk UI
-                    isMuted = !isMuted;
-                }
-                
-                btnMute.innerHTML = isMuted ? 
-                    '<i class="fas fa-microphone-slash"></i> Unmute' : 
-                    '<i class="fas fa-microphone"></i> Mute';
+                faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: Off';
             }
 
             // Screenshot
@@ -695,45 +912,22 @@
                     return;
                 }
                 
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                // Gabungkan video dengan canvas FaceMesh
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = video.videoWidth || 1280;
+                tempCanvas.height = video.videoHeight || 720;
+                const tempCtx = tempCanvas.getContext('2d');
                 
-                // Download screenshot
+                // Gambar video
+                tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Gambar overlay FaceMesh jika aktif
+                if (faceMeshActive) {
+                    tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+                }
+                
+                // Download
                 const link = document.createElement('a');
                 link.download = `screenshot_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            }
-
-            // Event listeners
-            btnStart.addEventListener('click', startStream);
-            btnStop.addEventListener('click', stopStream);
-            btnMute.addEventListener('click', toggleMute);
-            btnScreenshot.addEventListener('click', takeScreenshot);
-
-            // Jika pengguna keluar halaman, hentikan streaming
-            window.addEventListener('beforeunload', function() {
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                }
-            });
-
-            // Cek dukungan kamera
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                placeholder.querySelector('.status-text').textContent = '❌ Browser tidak mendukung kamera';
-                placeholder.querySelector('.sub-status').textContent = 'Gunakan browser modern (Chrome, Firefox, Edge)';
-                placeholder.querySelector('i').className = 'fas fa-times-circle';
-                placeholder.querySelector('i').style.color = '#e05a4f';
-                btnStart.disabled = true;
-                btnStart.style.opacity = '0.5';
-                btnStart.style.cursor = 'not-allowed';
-            }
-
-            console.log('Live streaming siap digunakan. Klik "Mulai Streaming" untuk mengaktifkan kamera.');
-        })();
-    </script>
-</body>
-</html>
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click
