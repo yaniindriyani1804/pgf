@@ -1,12 +1,12 @@
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live FaceMesh - Yani Indriyani</title>
+    <title>Kamera Filter Aksesoris - Yani Indriyani</title>
     <!-- Memuat pustaka MediaPipe CameraUtils dan FaceMesh dari CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <!-- DrawingUtils dihapus karena kita akan menggambar bentuk manual -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <style>
         body {
@@ -45,6 +45,42 @@ html_content = """<!DOCTYPE html>
             padding: 40px 20px;
             box-sizing: border-box;
             gap: 30px;
+        }
+
+        /* UI Kontrol Filter BARU */
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px solid #87CEEB; /* Bingkai pastel biru */
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #87CEEB; /* Biru pastel */
+            border-radius: 20px;
+            background-color: #EBF8FF; /* Latar biru pastel muda */
+            color: #555;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background-color: #FFB6C1; /* Pink pastel */
+            border-color: #FF9AA2; /* Pink pastel lebih gelap */
+            color: #fff;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-btn:hover:not(.active) {
+            background-color: #D3EEFF;
         }
 
         .camera-container {
@@ -114,15 +150,23 @@ html_content = """<!DOCTYPE html>
     <header>Yani Indriyani</header>
     
     <main>
+        <!-- UI PILIHAN AKSESORIS BARU -->
+        <div class="filter-controls">
+            <button class="filter-btn active" data-filter="none">Tanpa Filter</button>
+            <button class="filter-btn" data-filter="hat">Topi Pastel Pink</button>
+            <button class="filter-btn" data-filter="glasses">Kacamata Pastel Biru</button>
+            <button class="filter-btn" data-filter="mustache">Kumis Pastel</button>
+        </div>
+
         <div class="camera-container">
-            <div class="camera-header">🟢 Deteksi Wajah FaceMesh Live</div>
+            <div class="camera-header">🟢 Filter Kamera Aksesoris Yani</div>
             <div class="video-overlay-wrapper">
                 <video id="input_video" autoplay playsinline muted></video>
                 <canvas id="output_canvas" width="1280px" height="720px"></canvas>
             </div>
         </div>
         
-        <div class="status" id="statusText">Meminta akses kamera... Pastikan Anda mengizinkan (Allow) akses pada pop-up browser dan MediaPipe dimuat.</div>
+        <div class="status" id="statusText">Meminta akses kamera... Pastikan Anda mengizinkan (Allow) akses pada pop-up browser.</div>
     </main>
 
     <script type="module">
@@ -130,17 +174,18 @@ html_content = """<!DOCTYPE html>
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
         const statusText = document.getElementById('statusText');
+        const filterButtons = document.querySelectorAll('.filter-btn');
 
-        // Pustaka drawingUtils dimuat dari CDN global
-        const drawingUtils = window;
+        // Variabel untuk menyimpan filter aktif
+        let currentFilter = 'none';
 
         // Pesan status awal
-        statusText.innerHTML = "Memuat MediaPipe FaceMesh... ⏳";
+        statusText.innerHTML = "Memuat MediaPipe... ⏳";
         statusText.className = "loading";
 
-        // Fungsi callback untuk menangani hasil deteksi facemesh
+        // Fungsi Callback Deteksi Wajah
         function onResults(results) {
-          statusText.innerHTML = "✅ FaceMesh Aktif & Mendeteksi. Izin Kamera Diberikan.";
+          statusText.innerHTML = "✅ Izin Kamera Diberikan & Filter Aktif.";
           statusText.className = "success";
 
           canvasCtx.save();
@@ -153,39 +198,130 @@ html_content = """<!DOCTYPE html>
           // Jika ada deteksi wajah
           if (results.multiFaceLandmarks) {
             for (const landmarks of results.multiFaceLandmarks) {
-              // Gambar jaring-jaring (teselasi) wajah
-              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION,
-                                         {color: '#FFB6C1', lineWidth: 1}); // Pink Pastel untuk mesh
+              // --- HAPUS JARING-JARING WAJAH ---
+              // drawingUtils.drawConnectors(...) dihapus sepenuhnya.
 
-              // Gambar mata
-              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYE, {color: '#87CEEB'}); // Biru Pastel untuk mata kanan
-              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYEBROW, {color: '#87CEEB'});
-              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYE, {color: '#87CEEB'}); // Biru Pastel untuk mata kiri
-              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYEBROW, {color: '#87CEEB'});
-              
-              // Gambar detail lainnya (alis, bibir, kontur)
-              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_FACE_OVAL, {color: '#555555'}); // Abu-abu gelap pastel untuk oval
-              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_LIPS, {color: '#FFB6C1'}); // Pink Pastel untuk bibir
+              // --- GAMBAR AKSESORIS BERDASARKAN FILTER ---
+              if (currentFilter !== 'none') {
+                drawAccessory(canvasCtx, landmarks, currentFilter, canvasElement.width, canvasElement.height);
+              }
             }
           }
           canvasCtx.restore();
         }
 
-        // Inisialisasi MediaPipe FaceMesh
+        // --- FUNGSI BARU: MENGGAMBAR AKSESORIS ---
+        // Karena tidak ada gambar eksternal, kita menggambar bentuk dasar di kanvas.
+        // Posisikan dan skalakan bentuk berdasarkan landmark wajah.
+        function drawAccessory(ctx, lm, filter, width, height) {
+          // Skala global berdasarkan dahi-dagu (lm[10] ke lm[152])
+          const faceScaleY = Math.abs(lm[10].y - lm[152].y) * height;
+          // Skala horizontal dahi (lm[54] ke lm[284])
+          const faceScaleX = Math.abs(lm[54].x - lm[284].x) * width;
+
+          if (filter === 'hat') {
+            // Posisi pusat topi: lm[10] (puncak dahi), geser ke atas
+            const hatCenterX = lm[10].x * width;
+            const hatCenterY = (lm[10].y * height) - (faceScaleY * 0.4);
+
+            ctx.fillStyle = '#FFB6C1'; // Pink Pastel
+            ctx.strokeStyle = '#FF9AA2'; // Pink Pastel lebih gelap
+            ctx.lineWidth = 3;
+            
+            // Gambar bentuk topi sederhana: Setengah lingkaran di atas persegi
+            ctx.beginPath();
+            ctx.moveTo(hatCenterX - (faceScaleX * 0.7), hatCenterY + (faceScaleY * 0.2));
+            ctx.lineTo(hatCenterX + (faceScaleX * 0.7), hatCenterY + (faceScaleY * 0.2));
+            ctx.lineTo(hatCenterX + (faceScaleX * 0.7), hatCenterY - (faceScaleY * 0.1));
+            // Setengah lingkaran puncak
+            ctx.arc(hatCenterX, hatCenterY - (faceScaleY * 0.1), faceScaleX * 0.7, 0, Math.PI, true);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+          } else if (filter === 'glasses') {
+            // Posisi pusat kacamata: landmark lm[130] (sudut luar mata kiri) dan lm[359] (kanan)
+            const glassesCenterX = ((lm[130].x + lm[359].x) / 2) * width;
+            const glassesCenterY = ((lm[130].y + lm[359].y) / 2) * height;
+
+            ctx.fillStyle = '#EBF8FF80'; // Latar biru pastel muda transparan
+            ctx.strokeStyle = '#87CEEB'; // Bingkai biru pastel
+            ctx.lineWidth = 5;
+
+            // Gambar dua oval kacamata
+            const ovalWidth = faceScaleX * 0.6;
+            const ovalHeight = faceScaleY * 0.2;
+            const separation = faceScaleX * 0.7;
+
+            // Oval kiri
+            ctx.beginPath();
+            ctx.ellipse(glassesCenterX - (separation/2), glassesCenterY, ovalWidth, ovalHeight, 0, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+
+            // Oval kanan
+            ctx.beginPath();
+            ctx.ellipse(glassesCenterX + (separation/2), glassesCenterY, ovalWidth, ovalHeight, 0, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+
+            // Jembatan kacamata
+            ctx.beginPath();
+            ctx.moveTo(glassesCenterX - (separation/4), glassesCenterY);
+            ctx.quadraticCurveTo(glassesCenterX, glassesCenterY - (ovalHeight*0.5), glassesCenterX + (separation/4), glassesCenterY);
+            ctx.stroke();
+
+          } else if (filter === 'mustache') {
+            // Posisi pusat kumis: Rata-rata landmark hidung lm[1] dan bibir atas lm[13]
+            const mustacheCenterX = ((lm[1].x + lm[13].x) / 2) * width;
+            const mustacheCenterY = ((lm[1].y + lm[13].y) / 2) * height;
+
+            ctx.fillStyle = '#444444'; // Abu-abu tua pastel
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 1;
+
+            const mWidth = faceScaleX * 0.8;
+            const mHeight = faceScaleY * 0.1;
+
+            // Gambar bentuk kumis menggunakan dua kurva bezier
+            ctx.beginPath();
+            ctx.moveTo(mustacheCenterX, mustacheCenterY);
+            // Kumis Kiri
+            ctx.bezierCurveTo(mustacheCenterX - (mWidth*0.5), mustacheCenterY - (mHeight*0.5),
+                               mustacheCenterX - (mWidth*0.5), mustacheCenterY + (mHeight),
+                               mustacheCenterX - (mWidth*0.8), mustacheCenterY + mHeight);
+            ctx.bezierCurveTo(mustacheCenterX - (mWidth*0.6), mustacheCenterY + (mHeight*0.5),
+                               mustacheCenterX, mustacheCenterY + (mHeight*0.2),
+                               mustacheCenterX, mustacheCenterY);
+            // Kumis Kanan
+            ctx.bezierCurveTo(mustacheCenterX + (mWidth*0.5), mustacheCenterY - (mHeight*0.5),
+                               mustacheCenterX + (mWidth*0.5), mustacheCenterY + (mHeight),
+                               mustacheCenterX + (mWidth*0.8), mustacheCenterY + mHeight);
+            ctx.bezierCurveTo(mustacheCenterX + (mWidth*0.6), mustacheCenterY + (mHeight*0.5),
+                               mustacheCenterX, mustacheCenterY + (mHeight*0.2),
+                               mustacheCenterX, mustacheCenterY);
+            ctx.closePath();
+            ctx.fill(); ctx.stroke();
+          }
+        }
+
+        // --- INISIALISASI MEDIAPIPE FACE MESH ---
+        // Pustaka CDN dimuat sebagai modul.
+        import {FaceMesh} from "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js";
+        import {Camera} from "https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js";
+
         const faceMesh = new FaceMesh({locateFile: (file) => {
           return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
         }});
 
         faceMesh.setOptions({
           maxNumFaces: 1, // Batasi deteksi hanya satu wajah untuk performa
-          refineLandmarks: true, // Meningkatkan akurasi di sekitar mata/bibir
+          refineLandmarks: true, // Meningkatkan akurasi area dahi/mata
           minDetectionConfidence: 0.5,
           minTrackingConfidence: 0.5
         });
 
         faceMesh.onResults(onResults);
 
-        // Inisialisasi MediaPipe CameraUtils
+        // --- INISIALISASI KAMERA ---
         const camera = new Camera(videoElement, {
           onFrame: async () => {
             await faceMesh.send({image: videoElement});
@@ -200,17 +336,23 @@ html_content = """<!DOCTYPE html>
                 await camera.start();
             } catch (error) {
                 console.error('Error starting camera:', error);
-                statusText.innerHTML = "❌ Gagal mengakses kamera atau MediaPipe. Pastikan perangkat memiliki kamera dan izin diberikan.";
+                statusText.innerHTML = "❌ Gagal mengakses kamera. Pastikan perangkat memiliki kamera dan izin diberikan.";
                 statusText.className = "error";
             }
         });
 
+        // --- LOGIKA UI FILTER ---
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Nonaktifkan tombol aktif saat ini
+                document.querySelector('.filter-btn.active').classList.remove('active');
+                // Aktifkan tombol yang diklik
+                btn.classList.add('active');
+                // Setel filter aktif
+                currentFilter = btn.dataset.filter;
+            });
+        });
+
     </script>
 </body>
-</html>"""
-
-file_path = "/mnt/data/mediapipe_facemesh_yani.html"
-with open(file_path, "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-print(f"File created at {file_path}")
+</html>
