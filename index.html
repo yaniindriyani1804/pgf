@@ -3,7 +3,11 @@ html_content = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Kamera Laptop</title>
+    <title>Live FaceMesh - Yani Indriyani</title>
+    <!-- Memuat pustaka MediaPipe CameraUtils dan FaceMesh dari CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <style>
         body {
             margin: 0;
@@ -11,41 +15,74 @@ html_content = """<!DOCTYPE html>
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #e0e0e0;
+            background-color: #FFEBF3; /* Latar belakang pastel pink sangat muda */
+            color: #555; /* Teks gelap pastel */
         }
-        h1 {
-            margin-bottom: 20px;
-            color: #ffffff;
-        }
-        .camera-container {
+
+        header {
             width: 100%;
-            max-width: 800px;
-            background-color: #1e1e1e;
-            border: 2px solid #333;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            padding: 20px;
+            text-align: center;
+            background-color: #FFB6C1; /* Header pastel pink */
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        main {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            gap: 30px;
         }
+
+        .camera-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: #EBF8FF; /* Kontainer pastel biru muda */
+            border: 2px solid #87CEEB; /* Bingkai pastel biru */
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
         .camera-header {
-            background-color: #2a2a2a;
-            padding: 12px;
+            background-color: #87CEEB; /* Header kontainer pastel biru */
+            color: #ffffff;
+            padding: 15px;
             text-align: center;
             font-weight: 600;
-            border-bottom: 1px solid #333;
+            font-size: 18px;
+            border-bottom: 1px solid #ddd;
         }
-        .video-wrapper {
+
+        .video-overlay-wrapper {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* Rasio 16:9 */
-            background-color: #000;
+            /* Trik aspek rasio 16:9 agar kanvas responsif */
+            padding-top: 56.25%; 
+            background-color: #fff;
         }
-        video {
+
+        video#input_video {
+            display: none; /* Video mentah disembunyikan */
+        }
+
+        canvas#output_canvas {
             position: absolute;
             top: 0;
             left: 0;
@@ -53,56 +90,126 @@ html_content = """<!DOCTYPE html>
             height: 100%;
             object-fit: cover;
         }
+
         .status {
-            margin-top: 15px;
-            font-size: 14px;
+            font-size: 16px;
             color: #888;
             text-align: center;
-            padding: 0 20px;
+            padding: 10px 20px;
+            background-color: #ffffff90;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
         }
+
+        /* Pesan status interaktif */
+        #statusText.error { color: #f44336; }
+        #statusText.success { color: #4CAF50; }
+        #statusText.loading { color: #FFA500; }
+
     </style>
 </head>
 <body>
-    <h1>Monitoring Kamera Laptop</h1>
+    <header>Yani Indriyani</header>
     
-    <div class="camera-container">
-        <div class="camera-header">🟢 Kamera Lokal Aktif</div>
-        <div class="video-wrapper">
-            <video id="webcam" autoplay playsinline muted></video>
+    <main>
+        <div class="camera-container">
+            <div class="camera-header">🟢 Deteksi Wajah FaceMesh Live</div>
+            <div class="video-overlay-wrapper">
+                <video id="input_video" autoplay playsinline muted></video>
+                <canvas id="output_canvas" width="1280px" height="720px"></canvas>
+            </div>
         </div>
-    </div>
-    
-    <div class="status" id="statusText">Meminta akses kamera... Pastikan Anda mengizinkan (Allow) akses pada pop-up browser.</div>
+        
+        <div class="status" id="statusText">Meminta akses kamera... Pastikan Anda mengizinkan (Allow) akses pada pop-up browser dan MediaPipe dimuat.</div>
+    </main>
 
-    <script>
-        async function startCamera() {
-            const videoElement = document.getElementById('webcam');
-            const statusText = document.getElementById('statusText');
+    <script type="module">
+        const videoElement = document.getElementById('input_video');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const statusText = document.getElementById('statusText');
 
-            try {
-                // Meminta akses kamera dengan resolusi ideal 720p
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
-                    audio: false 
-                });
-                
-                videoElement.srcObject = stream;
-                statusText.innerHTML = "✅ Kamera berhasil terhubung dan berjalan dengan aman.";
-                statusText.style.color = "#4CAF50";
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                statusText.innerHTML = "❌ Gagal mengakses kamera. Pastikan perangkat memiliki kamera dan izin (Allow) telah diberikan.";
-                statusText.style.color = "#f44336";
+        // Pustaka drawingUtils dimuat dari CDN global
+        const drawingUtils = window;
+
+        // Pesan status awal
+        statusText.innerHTML = "Memuat MediaPipe FaceMesh... ⏳";
+        statusText.className = "loading";
+
+        // Fungsi callback untuk menangani hasil deteksi facemesh
+        function onResults(results) {
+          statusText.innerHTML = "✅ FaceMesh Aktif & Mendeteksi. Izin Kamera Diberikan.";
+          statusText.className = "success";
+
+          canvasCtx.save();
+          // Hapus canvas
+          canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+          
+          // Gambar video stream mentah ke canvas
+          canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+          // Jika ada deteksi wajah
+          if (results.multiFaceLandmarks) {
+            for (const landmarks of results.multiFaceLandmarks) {
+              // Gambar jaring-jaring (teselasi) wajah
+              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION,
+                                         {color: '#FFB6C1', lineWidth: 1}); // Pink Pastel untuk mesh
+
+              // Gambar mata
+              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYE, {color: '#87CEEB'}); // Biru Pastel untuk mata kanan
+              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYEBROW, {color: '#87CEEB'});
+              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYE, {color: '#87CEEB'}); // Biru Pastel untuk mata kiri
+              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYEBROW, {color: '#87CEEB'});
+              
+              // Gambar detail lainnya (alis, bibir, kontur)
+              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_FACE_OVAL, {color: '#555555'}); // Abu-abu gelap pastel untuk oval
+              drawingUtils.drawConnectors(canvasCtx, landmarks, FACEMESH_LIPS, {color: '#FFB6C1'}); // Pink Pastel untuk bibir
             }
+          }
+          canvasCtx.restore();
         }
 
-        // Menjalankan fungsi saat halaman dimuat
-        window.addEventListener('DOMContentLoaded', startCamera);
+        // Inisialisasi MediaPipe FaceMesh
+        const faceMesh = new FaceMesh({locateFile: (file) => {
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+        }});
+
+        faceMesh.setOptions({
+          maxNumFaces: 1, // Batasi deteksi hanya satu wajah untuk performa
+          refineLandmarks: true, // Meningkatkan akurasi di sekitar mata/bibir
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+
+        faceMesh.onResults(onResults);
+
+        // Inisialisasi MediaPipe CameraUtils
+        const camera = new Camera(videoElement, {
+          onFrame: async () => {
+            await faceMesh.send({image: videoElement});
+          },
+          width: 1280,
+          height: 720
+        });
+
+        // Jalankan kamera saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await camera.start();
+            } catch (error) {
+                console.error('Error starting camera:', error);
+                statusText.innerHTML = "❌ Gagal mengakses kamera atau MediaPipe. Pastikan perangkat memiliki kamera dan izin diberikan.";
+                statusText.className = "error";
+            }
+        });
+
     </script>
 </body>
 </html>"""
 
-file_path = "/mnt/data/kamera_laptop_only.html"
+file_path = "/mnt/data/mediapipe_facemesh_yani.html"
 with open(file_path, "w", encoding="utf-8") as f:
     f.write(html_content)
 
