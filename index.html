@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Yani Indriyani · Guru Fisika · FaceMesh</title>
+    <title>Yani Indriyani · FaceMesh Detection</title>
     <!-- Font & ikon -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -44,7 +44,7 @@
             border: 1px solid #f0e0d6;
         }
 
-        /* ===== VIDEO STREAMING KAMERA ===== */
+        /* ===== VIDEO STREAMING ===== */
         .video-stream-wrapper {
             width: 100%;
             margin-bottom: 2.2rem;
@@ -69,7 +69,6 @@
             object-fit: cover;
         }
 
-        /* Canvas untuk FaceMesh overlay */
         .video-stream-wrapper canvas {
             position: absolute;
             top: 0;
@@ -118,36 +117,36 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 1rem;
-            padding: 0.8rem 1.2rem;
-            background: rgba(0, 0, 0, 0.7);
+            gap: 0.8rem;
+            padding: 0.7rem 1rem;
+            background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(8px);
             position: absolute;
-            bottom: 20px;
+            bottom: 16px;
             left: 50%;
             transform: translateX(-50%);
             border-radius: 60px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            gap: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             flex-wrap: wrap;
             z-index: 3;
         }
 
         .video-controls button {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.1);
             border: none;
             color: white;
-            padding: 0.5rem 1.2rem;
+            padding: 0.4rem 1rem;
             border-radius: 40px;
             cursor: pointer;
             font-family: 'Quicksand', sans-serif;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             transition: all 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            white-space: nowrap;
         }
 
         .video-controls button:hover {
@@ -156,39 +155,40 @@
         }
 
         .video-controls button i {
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .video-controls .btn-danger {
-            background: rgba(220, 80, 80, 0.5);
-            border-color: rgba(220, 80, 80, 0.3);
+            background: rgba(220, 80, 80, 0.4);
+            border-color: rgba(220, 80, 80, 0.2);
         }
 
         .video-controls .btn-danger:hover {
-            background: rgba(220, 80, 80, 0.8);
+            background: rgba(220, 80, 80, 0.7);
         }
 
         .video-controls .btn-success {
-            background: rgba(80, 180, 120, 0.4);
-            border-color: rgba(80, 180, 120, 0.3);
+            background: rgba(80, 180, 120, 0.35);
+            border-color: rgba(80, 180, 120, 0.2);
         }
 
         .video-controls .btn-success:hover {
-            background: rgba(80, 180, 120, 0.7);
+            background: rgba(80, 180, 120, 0.65);
         }
 
         .video-controls .btn-facemesh {
-            background: rgba(100, 120, 220, 0.4);
-            border-color: rgba(100, 120, 220, 0.3);
+            background: rgba(100, 120, 220, 0.35);
+            border-color: rgba(100, 120, 220, 0.2);
         }
 
         .video-controls .btn-facemesh:hover {
-            background: rgba(100, 120, 220, 0.7);
+            background: rgba(100, 120, 220, 0.65);
         }
 
         .video-controls .btn-facemesh.active {
-            background: rgba(100, 220, 120, 0.5);
-            border-color: rgba(100, 220, 120, 0.4);
+            background: rgba(100, 220, 120, 0.4);
+            border-color: rgba(100, 220, 120, 0.3);
+            box-shadow: 0 0 20px rgba(100, 220, 120, 0.2);
         }
 
         .video-label {
@@ -196,36 +196,36 @@
             align-items: center;
             justify-content: space-between;
             background: #f7ece6;
-            padding: 0.5rem 1.2rem;
-            font-size: 0.9rem;
+            padding: 0.4rem 1.2rem;
+            font-size: 0.85rem;
             font-weight: 500;
             color: #6a4f42;
             border-top: 1px solid #eeded4;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.3rem;
         }
 
         .video-label-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .video-label-right {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .video-label i {
             color: #b48a78;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .video-label .live-dot {
             display: inline-block;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background: #e05a4f;
             border-radius: 50%;
             animation: pulse-dot 1.8s infinite;
@@ -243,18 +243,27 @@
         }
 
         .facemesh-status {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #8a7a72;
             background: #f0e4dc;
-            padding: 0.2rem 0.8rem;
+            padding: 0.15rem 0.7rem;
             border-radius: 30px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
-        .facemesh-status i {
-            font-size: 0.7rem;
+        .facemesh-status .active-text {
+            color: #4ecdc4;
+            font-weight: 600;
+        }
+
+        .facemesh-status .inactive-text {
+            color: #999;
+        }
+
+        .facemesh-status .no-face-text {
+            color: #ff6b6b;
         }
 
         /* header profil */
@@ -331,7 +340,6 @@
             margin: 0.2rem 0 0.8rem 0;
         }
 
-        /* info grid */
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
@@ -369,7 +377,6 @@
             margin-right: 4px;
         }
 
-        /* bio */
         .bio-section {
             background: #fcf5f0;
             padding: 1.8rem 2rem;
@@ -424,7 +431,6 @@
             margin-right: 10px;
         }
 
-        /* sosial */
         .social-links {
             display: flex;
             flex-wrap: wrap;
@@ -483,7 +489,6 @@
             color: #be9b8a;
         }
 
-        /* responsif */
         @media (max-width: 750px) {
             .card { padding: 1.8rem; }
             .video-stream-wrapper { min-height: 220px; }
@@ -496,8 +501,8 @@
             .social-buttons { justify-content: center; }
             .footer-note { text-align: center; }
             .video-label { flex-direction: column; align-items: center; text-align: center; }
-            .video-controls { bottom: 10px; padding: 0.5rem 0.8rem; gap: 0.5rem; }
-            .video-controls button { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
+            .video-controls { bottom: 10px; padding: 0.4rem 0.6rem; gap: 0.4rem; }
+            .video-controls button { padding: 0.25rem 0.7rem; font-size: 0.7rem; }
         }
 
         @media (max-width: 480px) {
@@ -512,60 +517,54 @@
 <body>
     <div class="card">
 
-        <!-- ===== VIDEO STREAMING KAMERA ===== -->
+        <!-- ===== VIDEO STREAMING ===== -->
         <div class="video-stream-wrapper" id="streamWrapper">
-            <video id="videoElement" autoplay playsinline muted></video>
-            <canvas id="faceMeshCanvas" width="1280" height="720"></canvas>
+            <video id="videoElement" autoplay playsinline></video>
+            <canvas id="faceMeshCanvas"></canvas>
             
-            <!-- Placeholder saat kamera belum aktif -->
             <div class="video-placeholder" id="videoPlaceholder">
                 <i class="fas fa-camera"></i>
                 <div class="status-text">Kamera belum diaktifkan</div>
-                <div class="sub-status">Klik tombol "Mulai Streaming" untuk mengaktifkan kamera</div>
+                <div class="sub-status">Klik tombol "Mulai Streaming"</div>
             </div>
 
-            <!-- Kontrol video -->
             <div class="video-controls" id="videoControls">
                 <button id="btnStart" class="btn-success">
-                    <i class="fas fa-play"></i> Mulai Streaming
+                    <i class="fas fa-play"></i> Mulai
                 </button>
                 <button id="btnStop" class="btn-danger" style="display:none;">
-                    <i class="fas fa-stop"></i> Hentikan
+                    <i class="fas fa-stop"></i> Berhenti
                 </button>
                 <button id="btnFaceMesh" class="btn-facemesh" style="display:none;">
                     <i class="fas fa-user-astronaut"></i> FaceMesh
                 </button>
                 <button id="btnScreenshot">
-                    <i class="fas fa-camera"></i> Screenshot
+                    <i class="fas fa-camera"></i> SS
                 </button>
             </div>
         </div>
 
-        <!-- Label video -->
         <div class="video-label">
             <div class="video-label-left">
                 <i class="fas fa-video"></i>
                 <span class="live-dot" id="liveDot"></span>
-                <span id="streamStatus">Streaming Belum Aktif</span>
+                <span id="streamStatus">Belum Aktif</span>
             </div>
             <div class="video-label-right">
                 <span class="facemesh-status" id="faceMeshStatus">
-                    <i class="fas fa-user-astronaut"></i> FaceMesh: Off
-                </span>
-                <span style="font-size:0.8rem; opacity:0.7;">
-                    <i class="fas fa-info-circle"></i> Kamera Bawaan
+                    <i class="fas fa-user-astronaut"></i> FaceMesh: <span class="inactive-text">Off</span>
                 </span>
             </div>
         </div>
 
-        <!-- header profil -->
+        <!-- profil -->
         <div class="profile-header">
             <div class="avatar">
                 <i class="fas fa-chalkboard-teacher"></i>
             </div>
             <div class="title-group">
                 <h1>Yani Indriyani</h1>
-                <div class="subhead"><i class="fas fa-atom" style="margin-right: 8px;"></i> Guru Fisika</div>
+                <div class="subhead"><i class="fas fa-atom"></i> Guru Fisika</div>
                 <div class="school">
                     <i class="fas fa-school"></i> SMPK 1 Bina Bakti
                 </div>
@@ -573,40 +572,25 @@
             </div>
         </div>
 
-        <!-- informasi singkat -->
         <div class="info-grid">
             <div class="info-item"><i class="fas fa-graduation-cap"></i> <span><span class="label">Pendidikan</span> S1 Pendidikan Fisika</span></div>
-            <div class="info-item"><i class="fas fa-clock"></i> <span><span class="label">Pengalaman</span> 12+ tahun mengajar</span></div>
+            <div class="info-item"><i class="fas fa-clock"></i> <span><span class="label">Pengalaman</span> 12+ tahun</span></div>
             <div class="info-item"><i class="fas fa-flask"></i> <span><span class="label">Bidang</span> Fisika & Sains</span></div>
             <div class="info-item"><i class="fas fa-heart"></i> <span><span class="label">Minat</span> Eksperimen & STEM</span></div>
         </div>
 
-        <!-- bio / perkenalan -->
         <div class="bio-section">
             <h2><i class="fas fa-user-astronaut"></i> Tentang Saya</h2>
             <p>
                 <strong>Halo, saya Yani Indriyani!</strong> 
-                Saya adalah guru fisika yang bersemangat di 
-                <strong>SMPK 1 Bina Bakti</strong>. 
-                Mengajar bukan sekadar profesi, tapi panggilan untuk 
-                menumbuhkan rasa ingin tahu dan kegembiraan terhadap 
-                ilmu fisika. Saya percaya bahwa fisika ada di mana-mana — 
-                dari jatuhnya daun hingga cahaya bintang. 
-                Di kelas, saya suka menghadirkan eksperimen sederhana 
-                dan diskusi interaktif agar setiap siswa menemukan 
-                'keajaiban' dalam sains. 
+                Guru fisika di <strong>SMPK 1 Bina Bakti</strong>. 
+                Saya percaya fisika ada di mana-mana — dari jatuhnya daun hingga cahaya bintang.
             </p>
             <div class="quote-block">
-                <i class="fas fa-quote-left"></i> Fisika itu menyenangkan, karena alam semesta adalah laboratorium terbesar kita.
+                <i class="fas fa-quote-left"></i> Fisika itu menyenangkan, alam semesta adalah laboratorium terbesar kita.
             </div>
-            <p style="margin-top: 0.4rem;">
-                <i class="fas fa-hand-peace" style="color:#b48a78; margin-right: 8px;"></i>
-                Mari belajar dan bertanya tanpa batas. Saya selalu terbuka untuk 
-                obrolan sains di luar jam pelajaran.
-            </p>
         </div>
 
-        <!-- tautan sosial & footer -->
         <div class="social-links">
             <div class="social-buttons">
                 <a href="#" class="social-btn"><i class="fab fa-instagram"></i> @yanifisika</a>
@@ -614,21 +598,18 @@
                 <a href="#" class="social-btn"><i class="fas fa-envelope"></i> yani@binabakti.sch.id</a>
             </div>
             <div class="footer-note">
-                <i class="fas fa-arrow-right"></i> Selamat datang di ruang belajar!
+                <i class="fas fa-arrow-right"></i> Selamat datang!
             </div>
         </div>
 
-        <!-- dekoratif -->
-        <div style="margin-top: 1.5rem; font-size: 0.8rem; color: #dcc2b6; text-align: center; border-top: 1px solid #f0dfd4; padding-top: 1rem; letter-spacing: 0.5px;">
-            <i class="fas fa-circle" style="font-size: 0.4rem; vertical-align: middle; margin: 0 4px;"></i>
+        <div style="margin-top: 1.5rem; font-size: 0.8rem; color: #dcc2b6; text-align: center; border-top: 1px solid #f0dfd4; padding-top: 1rem;">
             SMPK 1 Bina Bakti · Yani Indriyani
-            <i class="fas fa-circle" style="font-size: 0.4rem; vertical-align: middle; margin: 0 4px;"></i>
         </div>
     </div>
 
     <script>
         (function() {
-            // Elemen
+            // ===== ELEMEN =====
             const video = document.getElementById('videoElement');
             const canvas = document.getElementById('faceMeshCanvas');
             const ctx = canvas.getContext('2d');
@@ -647,14 +628,13 @@
             let faceMeshActive = false;
             let faceMesh = null;
             let camera = null;
-            let animationId = null;
 
-            // Update UI
+            // ===== UPDATE UI =====
             function updateUI(status) {
                 if (status === 'active') {
                     placeholder.style.display = 'none';
                     liveDot.className = 'live-dot';
-                    streamStatus.textContent = '● Live Streaming Aktif';
+                    streamStatus.textContent = '● Live';
                     streamStatus.style.color = '#e05a4f';
                     btnStart.style.display = 'none';
                     btnStop.style.display = 'inline-flex';
@@ -663,271 +643,556 @@
                 } else {
                     placeholder.style.display = 'flex';
                     liveDot.className = 'live-dot inactive';
-                    streamStatus.textContent = 'Streaming Belum Aktif';
+                    streamStatus.textContent = 'Belum Aktif';
                     streamStatus.style.color = '#6a4f42';
                     btnStart.style.display = 'inline-flex';
                     btnStop.style.display = 'none';
                     btnFaceMesh.style.display = 'none';
                     isStreaming = false;
                     faceMeshActive = false;
-                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: Off';
                     btnFaceMesh.classList.remove('active');
+                    btnFaceMesh.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh';
+                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: <span class="inactive-text">Off</span>';
                 }
             }
 
-            // ========== FACE MESH ==========
+            // ===== FACE MESH =====
             function initFaceMesh() {
+                           function initFaceMesh() {
                 faceMesh = new FaceMesh({
-                    locateFile: (file) => {
-                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+ faceMesh = new FaceMesh({
+                    locateFile: (file) =>                    locateFile: {
+                        return `https://cdn.js (file) => {
+                        return `delivr.net/npm/@mediahttps://cdn.jsdelivr.net/npm/@mediapipe/face_mpipe/face_mesh/${file}`;
+                    }
+               esh/${file}`;
                     }
                 });
 
                 faceMesh.setOptions({
-                    maxNumFaces: 1,
+                    });
+
+                faceMesh.setOptions({
+                    maxNumFaces maxNumFaces: 1,
                     refineLandmarks: true,
-                    minDetectionConfidence: 0.5,
-                    minTrackingConfidence: 0.5
+                   : 1,
+                    refineLandmarks minDetectionConfidence: 0.: true,
+                    minDetectionConfidence5,
+                    minTrackingConfidence:: 0.5,
+                    minTrackingConfidence: 0.5 0.5
+               
                 });
 
-                faceMesh.onResults((results) => {
+                });
+
+                faceMesh.onResults faceMesh.onResults((results) =>((results) => {
+                    drawFaceMesh(results);
+                });
+ {
                     drawFaceMesh(results);
                 });
             }
 
-            function drawFaceMesh(results) {
-                // Clear canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            function            }
+
+            function drawFaceMesh(results drawFaceMesh(results) {
+                ctx) {
+                ctx.clearRect(0.clearRect(0, 0, canvas.width, canvas.height);
+                
+               , 0, canvas.width, canvas if (!faceMesh.height);
                 
                 if (!faceMeshActive) {
                     return;
                 }
 
-                // Draw mesh if face detected
-                if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                    // Draw face mesh connections
+Active) {
+                                   if (results.multiFace return;
+                }
+
+                if (resultsLandmarks && results.multiFaceLand.multiFaceLandmarks && resultsmarks.length > 0) {
+                   .multiFaceLandmarks.length >  const landmarks = results.multi0) {
                     const landmarks = results.multiFaceLandmarks[0];
+FaceLandmarks[0];
                     
-                    // Draw connections (mesh)
-                    ctx.strokeStyle = '#00ff88';
-                    ctx.lineWidth = 1;
-                    ctx.shadowColor = '#00ff88';
-                    ctx.shadowBlur = 4;
-
-                    // Draw all connections
-                    for (const connection of FaceMesh.FACEMESH_CONTOURS) {
-                        const start = landmarks[connection[0]];
-                        const end = landmarks[connection[1]];
-                        ctx.beginPath();
-                        ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
-                        ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
-                        ctx.stroke();
-                    }
-
-                    // Draw face mesh tessellation (more detailed)
-                    ctx.strokeStyle = 'rgba(255, 200, 100, 0.3)';
-                    ctx.lineWidth = 0.5;
-                    for (const connection of FaceMesh.FACEMESH_TESSELATION) {
-                        const start = landmarks[connection[0]];
-                        const end = landmarks[connection[1]];
-                        ctx.beginPath();
-                        ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
-                        ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
-                        ctx.stroke();
-                    }
-
-                    // Draw landmarks (dots)
-                    ctx.shadowBlur = 0;
-                    for (const landmark of landmarks) {
-                        const x = landmark.x * canvas.width;
-                        const y = landmark.y * canvas.height;
-                        ctx.beginPath();
-                        ctx.arc(x, y, 2, 0, 2 * Math.PI);
-                        ctx.fillStyle = '#ff6b6b';
-                        ctx.fill();
-                        ctx.strokeStyle = '#ffd93d';
-                        ctx.lineWidth = 0.5;
-                        ctx.stroke();
-                    }
-
-                    // Draw eye landmarks khusus
-                    ctx.fillStyle = '#4ecdc4';
-                    ctx.shadowColor = '#4ecdc4';
-                    ctx.shadowBlur = 8;
-                    for (const idx of [33, 133, 362, 263]) { // eye landmarks
-                        const landmark = landmarks[idx];
-                        const x = landmark.x * canvas.width;
-                        const y = landmark.y * canvas.height;
-                        ctx.beginPath();
-                        ctx.arc(x, y, 4, 0, 2 * Math.PI);
-                        ctx.fill();
-                    }
-                    
-                    // Draw lips outline
-                    ctx.strokeStyle = '#ff6b6b';
-                    ctx.lineWidth = 2;
+                    // Draw all                    
+                    // Draw all connections (mesh connections (mesh)
+                    ctx.st)
+                    ctx.strokeStyle = '#rokeStyle = '#00ff88';
+00ff88';
+                    ctx.lineWidth = 1.2;
+                    ctx                    ctx.lineWidth = 1.2;
+                    ctx.shadowColor =.shadowColor = '#00ff88';
+                    ctx.sh '#00ff88';
                     ctx.shadowBlur = 6;
-                    for (const connection of FaceMesh.FACEMESH_LIPS) {
+
+                   adowBlur = 6;
+
+                    for (const connection of FaceMesh for (const connection of FaceMesh.FACEMESH_CONTOURS.FACEMESH_CONTOURS) {
+                        const start = landmarks) {
                         const start = landmarks[connection[0]];
+                        const end = landmarks[connection[connection[0]];
                         const end = landmarks[connection[1]];
                         ctx.beginPath();
+                        ctx.moveTo(start.x * canvas.width[1]];
+                        ctx.beginPath();
                         ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
-                        ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
+                        ctx.lineTo(end.x *, start.y * canvas.height);
+                        canvas.width, end.y * ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
+                        canvas.height);
+                        ctx.stroke();
+ ctx.stroke();
+                    }
+
+                    //                    }
+
+                    // Draw tess Draw tessellation
+                    ctxellation
+                    ctx.strokeStyle = 'rgba(255, 200.strokeStyle = 'rgba(255, 200, 100,, 100, 0.2 0.2)';
+                   )';
+                    ctx ctx.lineWidth = .lineWidth = 0.5;
+0.5;
+                    ctx.shadow                    ctx.shadowBlur = Blur = 0;
+                    for0;
+                    for (const connection of FaceMesh.FACEMESH_T (const connection of FaceMesh.FESSELATION) {
+                        const startACEMESH_TESSELATION) {
+                        const start = landmarks[connection = landmarks[connection[0]];
+                       [0]];
+                        const end = landmarks const end = landmarks[connection[1]];
+                        ctx.begin[connection[1]];
+                        ctx.beginPath();
+                        ctx.moveTo(start.xPath();
+                        ctx.moveTo(start * canvas.width, start.y * canvas.x * canvas.width, start.y * canvas.height);
+                        ctx.height);
+                        ctx.lineTo(end.x.lineTo(end.x * canvas.width, * canvas.width, end.y * canvas.height);
+                        ctx.stroke end.y * canvas.height);
+                        ctx();
+                    }
+
+                    // Draw.stroke();
+                    }
+
+                    // Draw landmarks
+                    ctx.shadowBlur = 0;
+                    for (const landmarks
+                    ctx.shadowBlur = 0;
+                    for (const landmark of landmarks) landmark of landmarks) {
+                        const x {
+                        const x = landmark.x * canvas.width;
+                        = landmark.x * const y = landmark.y * canvas.height canvas.width;
+                        const y = landmark.y * canvas.height;
+                        ctx.begin;
+                        ctx.beginPath();
+                        ctxPath();
+                        ctx.arc(x,.arc(x, y, 2, 0, y, 2, 0, 2 * Math.PI);
+                        2 * Math.PI);
+                        ctx.fillStyle = '# ctx.fillStyle = '#ff6bff6b6b';
+                       6b';
+                        ctx.fill();
+                        ctx.strokeStyle = '#ff ctx.fill();
+                        ctx.strokeStyled93d';
+                        ctx.lineWidth = '#ffd93d';
+                        ctx.lineWidth = 0. = 0.5;
+                        ctx.stroke();
+                   5;
                         ctx.stroke();
                     }
 
-                    // Reset shadow
+                    // Draw }
+
+                    // Draw eyes
+                    ctx eyes
+                    ctx.fillStyle = '#4ecdc4';
+                    ctx.sh.fillStyle = '#4ecdc4adowColor = '#4ec';
+                    ctx.shadowColordc4';
+                    ctx.shadowBl = '#4ecdc4';
+                    ctx.shadowBlur = 10ur = 10;
+                    for (const idx of;
+                    for (const idx of [33, 133, 362 [33, 133, 362, 263]) {
+                        const landmark, 263]) {
+                        const landmark = landmarks[idx];
+                        const x = landmarks[idx];
+                        const x = landmark.x * canvas.width;
+                        = landmark.x * canvas.width;
+                        const y = landmark.y * canvas.height const y = landmark.y * canvas.height;
+                        ctx.beginPath();
+                        ctx;
+                        ctx.beginPath();
+                        ctx.arc(x,.arc(x, y, 5, 0, y, 5, 0, 2 * Math.PI);
+                        2 * Math.PI);
+                        ctx.fill();
+                    }
+ ctx.fill();
+                    }
+                    
+                    // Draw lips
+                    ctx                    
+                    // Draw lips
+                    ctx.strokeStyle = '#ff6b.strokeStyle = '#ff6b6b';
+                    ctx6b';
+                   .lineWidth = 2;
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 8 ctx.shadowBlur = 8;
+                    for (const connection of Face;
+                    for (const connection of FaceMesh.FACEMESH_LMesh.FACEMESH_LIPS) {
+                        const start = landmarksIPS) {
+                       [connection[0]];
+                        const end const start = landmarks[connection[0 = landmarks[connection[1]];
+                       ]];
+                        const end = landmarks[connection[1]];
+                        ctx.beginPath();
+ ctx.beginPath();
+                        ctx.moveTo(start.x * canvas.width, start.y                        ctx.moveTo(start.x * canvas * canvas.height);
+.width, start.y * canvas.height);
+                        ctx.lineTo(end.x * canvas.width, end.y                        ctx.lineTo(end.x * canvas.width, end.y * * canvas.height);
+                        ctx.stroke canvas.height);
+                        ctx.stroke();
+                    }
+
+                    ctx.shadowBl();
+                    }
+
                     ctx.shadowBlur = 0;
                     
-                    // Update status
-                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: <span style="color:#4ecdc4;">Active</span>';
+ur = 0;
+                    
+                    face                    faceMeshStatus.innerHTML = '<i class="fas fa-user-MeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></astronaut"></i> FaceMesh: <span classi> FaceMesh: <span class="active-text">Active</="active-text">Active</span>';
                 } else {
-                    // No face detected
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                    ctx.font = '20px Quicksand';
+                    ctxspan>';
+                } else {
+                    ctx.fillStyle = 'rgba(.fillStyle = 'rgba(255, 255, 255, 255, 0.255, 255, 0.2)';
+                    ctx.font = '2)';
+                    ctx.font = '16px Quicksand';
+                   16px Quicksand';
                     ctx.textAlign = 'center';
-                    ctx.fillText('🔍 Tidak ada wajah terdeteksi', canvas.width/2, canvas.height/2);
-                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: <span style="color:#ff6b6b;">No Face</span>';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🔍 Tidak ada ctx.fillText('🔍 Tidak ada wajah', canvas wajah', canvas.width/2,.width/2, canvas.height/2 - 10);
+                    ctx canvas.height/2 - 10.fillStyle = 'rg);
+                    ctx.fillStyle = 'rgba(255, 255, ba(255, 255, 255, 0.15255, 0.15)';
+                    ctx.font = '12)';
+                    ctx.font = '12px Quicksand';
+                    ctx.fillpx Quicksand';
+                    ctx.fillText('Pastikan wajah terlihat jelas', canvas.width/2Text('Pastikan wajah terlihat jelas', canvas.width/2, canvas.height/, canvas.height/2 + 202 + 20);
+                    faceMesh);
+                    faceMeshStatus.innerHTML = '<i class="fasStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: fa-user-astronaut"></i <span class="no-face-text">> FaceMesh: <span class="No Face</span>';
+                }
+           no-face-text">No Face</span>';
                 }
             }
 
-            // Toggle FaceMesh
+            function toggle }
+
             function toggleFaceMesh() {
+FaceMesh() {
                 if (!isStreaming) {
-                    alert('Mulai streaming terlebih dahulu untuk menggunakan FaceMesh');
+                    alert('Mul                if (!isStreaming) {
+                    alert('Mulai streaming duluai streaming dulu!');
+                    return!');
                     return;
+                }
+
+               ;
                 }
 
                 faceMeshActive = !faceMeshActive;
                 
+                if faceMeshActive = !faceMeshActive (faceMeshActive) {
+                    btn;
+                
                 if (faceMeshActive) {
-                    btnFaceMesh.classList.add('active');
-                    btnFaceMesh.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: On';
-                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: <span style="color:#4ecdc4;">Active</span>';
-                    
-                    // Start face mesh processing
-                    if (faceMesh && camera) {
-                        // FaceMesh akan diproses melalui camera
-                    }
+                    btnFaceFaceMesh.classList.add('active');
+                   Mesh.classList btnFaceMesh.innerHTML = '<.add('active');
+                    btnFaceMesh.innerHTMLi class="fas fa-user = '<i class="fas fa-user-astronaut"></i> On-astronaut"></i> On';
+                    faceMeshStatus.innerHTML =';
+                    faceMeshStatus.innerHTML = '<i class="fas fa-user-ast '<i class="fas fa-user-astronaut"></i> FaceMesh:ronaut"></i> FaceMesh: <span class="active-text">Active <span class="active-text">Active</span>';
+                    // Clear canvas</span>';
+                    // Clear canvas jika jika belum ada det belum ada deteksi
+                    ctx.clearRect(0eksi
+                    ctx.clearRect(0, 0, canvas.width, canvas, 0, canvas.width, canvas.height);
+                } else {
+                    btn.height);
                 } else {
                     btnFaceMesh.classList.remove('active');
-                    btnFaceMesh.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh';
-                    faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: Off';
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                   FaceMesh.classList.remove('active');
+                    btnFaceMesh.innerHTML = '<i class btnFaceMesh.innerHTML = '<i class="fas fa-user="fas fa-user-astronaut-astronaut"></i> Face"></i> FaceMesh';
+                    faceMesh';
+                    faceMeshStatus.innerHTML = '<i class="fas fa-user-MeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMeshastronaut"></i> FaceMesh: <span class: <span class="inactive-text="inactive-text">Off</">Off</span>';
+                   span>';
+                    ctx.clearRect(0, 0, canvas ctx.clearRect(0, 0, canvas.width, canvas.height.width, canvas.height);
+                }
+           );
                 }
             }
 
-            // ========== STREAMING ==========
+            // = }
+
+            // ===== STREAMING =====
+            async==== STREAMING ===== function startStream()
             async function startStream() {
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
+ {
+                try {
+                    stream = await navigator.media                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { 
+Devices.getUserMedia({
+                        video                            facingMode: 'user',
+                           : { 
                             facingMode: 'user',
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
+                            width: { ideal width: { ideal: 640 },
+                            height: { ideal: 480 }
                         },
-                        audio: false
+: 640 },
+                            height: { ideal: 480 }
+                        },
+                        audio: false                        audio: false
+                    });
+
+                    video.srcObject =
                     });
 
                     video.srcObject = stream;
                     await video.play();
                     
+ stream;
+                    await video.play();
+                    
                     // Set canvas size
-                    canvas.width = video.videoWidth || 1280;
-                    canvas.height = video.videoHeight || 720;
+                    canvas                    // Set canvas size
+                    canvas.width = video.videoWidth || .width = video.videoWidth || 640;
+                    canvas640;
+                    canvas.height = video.videoHeight || .height = video.videoHeight || 480;
+                    
+                    updateUI('480;
                     
                     updateUI('active');
-                    console.log('Streaming kamera berhasil dimulai');
+                    console.log('✅ Streamingactive');
+                    console.log('✅ Streaming aktif');
                     
-                    // Inisialisasi FaceMesh
+                    // Init FaceMesh
+                    initFace aktif');
+                    
+                    // Init FaceMesh
                     initFaceMesh();
+Mesh();
                     
                     // Setup camera untuk MediaPipe
+                    camera                    
+                    // Setup camera untuk MediaPipe
                     camera = new Camera(video, {
+                        = new Camera(video, {
                         onFrame: async () => {
+                            onFrame: async () => {
                             if (faceMeshActive && faceMesh) {
+                                try if (faceMeshActive && faceMesh) {
                                 try {
                                     await faceMesh.send({image: video});
+                                } catch (err {
+                                    await faceMesh.send({image) {
+                                    //: video});
                                 } catch (err) {
-                                    // Silent error
+                                    // silent silent
+                                }
+                           
                                 }
                             }
                         },
-                        width: 1280,
-                        height: 720
+                        }
+                        },
+                        width: 640 width: 640,
+                        height:,
+                        height: 480
                     });
                     
-                    // Mulai camera (MediaPipe)
+                    try {
+                        await camera 480
+                   .start();
+                        console.log('✅ FaceMesh camera started });
+                    
                     try {
                         await camera.start();
-                        console.log('FaceMesh camera started');
+                        console.log('✅ FaceMesh camera started');
+                    } catch');
                     } catch (err) {
-                        console.warn('FaceMesh camera start error:', err);
+ (err) {
+                        console.warn('FaceMesh camera                        console.warn('FaceMesh camera error error:', err);
                     }
                     
-                } catch (err) {
-                    console.error('Error mengakses kamera:', err);
-                    alert('Tidak dapat mengakses kamera. Pastikan kamera terhubung dan izin diberikan.\n\nError: ' + err.message);
+                } catch (err:', err);
+                   ) {
+                    console.error('❌ Error }
                     
-                    placeholder.querySelector('.status-text').textContent = '⚠️ Gagal Mengakses Kamera';
-                    placeholder.querySelector('.sub-status').textContent = 'Pastikan kamera terhubung dan izin diberikan';
-                    placeholder.querySelector('i').className = 'fas fa-exclamation-triangle';
-                    placeholder.querySelector('i').style.color = '#e05a4f';
+                } catch (err) {
+                    console.error kamera:', err);
+('❌ Error kamera:', err);
+                    alert('G                    alert('Gagal akses kameraagal akses kamera: ' + err.message);
+                    
+: ' + err.message);
+                    
+                    placeholder.querySelector('.status-text').text                    placeholder.querySelector('.status-textContent = '⚠️ Gagal Akses Kamera';
+                    placeholder').textContent = '⚠️ Gagal Akses Kamera';
+                    placeholder.querySelector('.sub-status.querySelector('.sub-status').textContent = 'Periksa').textContent = 'Per izin kamera';
+                    placeholder.querySelector('iiksa izin kamera';
+                   ').className = 'fas fa-exclamation placeholder.querySelector('i').className = 'fas fa-exclamation-triangle';
+                   -triangle';
+                    placeholder.querySelector('i placeholder.querySelector('i').style.color =').style.color = '#e05a '#e05a4f';
+               4f';
                 }
             }
 
-            // Hentikan streaming
-            function stopStream() {
-                // Stop FaceMesh
+            }
+            }
+
+            function stopStream() function stopStream() {
                 if (camera) {
-                    camera.stop();
+                    try {
+                if (camera) {
+                    try { { camera.stop(); } camera.stop(); } catch(e catch(e) {}
+                    camera = null;
+                }
+                
+                if) {}
                     camera = null;
                 }
                 
                 if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
+ (stream) {
+                    stream.getTracks().forEach(t                    stream.getTracks().forEach(track => track.stop());
+                    stream =rack => track.stop());
                     stream = null;
+                }
+ null;
                 }
                 video.srcObject = null;
                 
+                video.srcObject = null;
+                
                 faceMeshActive = false;
+                               faceMeshActive = false;
                 btnFaceMesh.classList.remove('active');
+                btnFaceMesh.innerHTML = '<i btnFaceMesh.classList.remove('active');
                 btnFaceMesh.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh';
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                class="fas fa-user-astronaut"></i> FaceMesh ctx.clearRect(0,';
+                ctx.clearRect(0, 0, canvas.width, 0, canvas.width, canvas.height);
                 
-                updateUI('inactive');
-                console.log('Streaming dihentikan');
+                updateUI(' canvas.height);
                 
-                placeholder.querySelector('.status-text').textContent = 'Kamera belum diaktifkan';
-                placeholder.querySelector('.sub-status').textContent = 'Klik tombol "Mulai Streaming" untuk mengaktifkan kamera';
-                placeholder.querySelector('i').className = 'fas fa-camera';
-                placeholder.querySelector('i').style.color = '#b48a78';
-                faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut"></i> FaceMesh: Off';
+                updateUIinactive');
+                console.log('('inactive');
+                console.log('⏹️ Streaming⏹️ Streaming dihentikan');
+                
+                placeholder.querySelector('.status-text').textContent dihentikan');
+                
+                placeholder.querySelector('.status-text').textContent = 'Kamera belum diaktif = 'Kamera belum diaktifkan';
+                placeholder.querySelector('.sub-statuskan';
+                placeholder.querySelector('.sub-status').textContent = 'Klik tombol "Mulai').textContent = 'Klik tombol "Mulai"';
+                placeholder"';
+                placeholder.querySelector('i')..querySelector('i').className = 'fas fa-camera';
+                placeholder.querySelector('className = 'fas fa-camera';
+                placeholder.querySelector('i').style.color = '#b48i').style.color = '#b48a78';
+                faceMeshStatus.innerHTML = '<i class="fas fa-usera78';
+                faceMeshStatus.innerHTML = '<i class="fas fa-user-astronaut-astronaut"></i> Face"></i> FaceMesh: <spanMesh: <span class="inactive-text">Off</ class="inactive-text">Off</span>';
             }
 
-            // Screenshot
+            function takeSspan>';
+            }
+
             function takeScreenshot() {
+                if (!isStreamcreenshot() {
                 if (!isStreaming) {
-                    alert('Mulai streaming terlebih dahulu untuk mengambil screenshot');
+                    alert('Muling) {
+                    alert('Mulai streaming dulu!');
+                    returnai streaming dulu!');
                     return;
                 }
                 
-                // Gabungkan video dengan canvas FaceMesh
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = video.videoWidth || 1280;
-                tempCanvas.height = video.videoHeight || 720;
-                const tempCtx = tempCanvas.getContext('2d');
-                
-                // Gambar video
-                tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-                
-                // Gambar overlay FaceMesh jika aktif
-                if (faceMeshActive) {
-                    tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+                const tempCanvas;
                 }
                 
-                // Download
-                const link = document.createElement('a');
-                link.download = `screenshot_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.png`;
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = video.v = document.createElement('canvas');
+                tempCanvas.width = video.videoideoWidth || 640;
+Width || 640;
+                tempCanvas.height = video.video                tempCanvas.height = video.videoHeight || 480;
+                constHeight || 480;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                tempC tempCtx = tempCanvas.getContext('2d');
+                
+                tempCtx.drawImage(vtx.drawImage(video, 0, 0,ideo, 0, 0, tempCanvas.width, tempCanvas.height);
+ tempCanvas.width, tempCanvas.height);
+                
+                if (faceMeshActive) {
+                    tempCtx.drawImage(c                
+                if (faceMeshActive)anvas,  {
+                    tempCtx.drawImage(c0, 0, tempCanvas.widthanvas, 0, 0, tempCanvas.width, tempCanvas.height, tempCanvas.height);
+                }
+                
+                const link = document.createElement('a);
+                }
+                
+');
+                link.download = `s                const link = document.createElement('a');
+                link.download = `screenshot_${new Date().tocreenshot_${new Date().toISOISOString().slice(String().slice(0,19).replace(/:/g, '-')}.0,19).replace(/:/gpng`;
+                link.href = temp, '-')}.png`;
                 link.href = tempCanvas.toDataURL('image/png');
-                link.click
+                link.clickCanvas.toDataURL('image/png();
+            }
+
+            //');
+                link.click();
+            }
+
+            ===== EVENT LISTENERS = // ===== EVENT LISTENERS =====
+            btnStart.addEventListener('click====
+            btn', startStream);
+            btnStop.addEventListenerStart.addEventListener('click', startStream);
+            btnStop.addEventListener('click', stop('click', stopStream);
+            btnFaceMesh.addEventListener('click', toggleStream);
+            btnFaceMesh.addEventListener('click', toggleFaceMesh);
+            btnFaceMesh);
+            btnScreenshot.addEventListener('click', takeSScreenshot.addEventListener('click', takeScreenshot);
+
+            window.addEventListener('beforeuncreenshot);
+
+            window.addEventListener('beforeunload', function() {
+                if (load', function() {
+                if (stream) {
+                    stream.getstream) {
+                    stream.getTracks().forEach(trackTracks().forEach(track => track.stop());
+                }
+            });
+
+            // Cek dukungan => track.stop());
+                }
+            });
+
+            // Cek dukungan
+            if (!navigator.
+            if (!navigator.mediaDevices || !navigatormediaDevices || !navigator.mediaDevices.getUserMedia).mediaDevices.getUserMedia) {
+                placeholder.querySelector('.status-text').textContent = ' {
+                placeholder.querySelector('.status-text').textContent = '❌❌ Browser tidak mendukung';
+                placeholder.querySelector('.sub-status').textContent Browser tidak mendukung';
+                placeholder.querySelector('.sub-status').textContent = 'Gunakan Chrome/Firefox = 'Gunakan Chrome/Firefox/Edge';
+                placeholder.querySelector('i').className = '/Edge';
+                placeholder.querySelector('ifas fa-times-circle';
+                placeholder.querySelector').className = 'fas fa-times-circle';
+                placeholder.querySelector('i').style('i').style.color = '#e.color = '#e05a4f05a4f';
+                btnStart';
+                btnStart.disabled = true.disabled = true;
+                btnStart;
+                btnStart.style.opacity = '0.4';
+                btnStart.style.opacity = '0.4.style.cursor = 'not-allowed';
+            }
+
+            console.log('';
+                btnStart.style.cursor = 'not-allowed';
+            }
+
+            console.log('🚀 S🚀 Siap! Klik "Muliap! Klik "ai" untuk mengaktMulai"ifkan kamera dan FaceMesh untuk mengaktifkan kamera dan FaceMesh.');
+        })();
+    </script>
+.');
+        })();
+    </script>
+</body>
+</</body>
+</html>
