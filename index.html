@@ -3,145 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kamera Live dengan Deteksi Jenis Kelamin</title>
-    <!-- Memuat pustaka face-api.js dari CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <title>Profil Guru - Yani Indriyani</title>
     <style>
+        /* Mengatur latar belakang dan font dasar dengan tema pastel */
         body {
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: #f0f2f5;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #FFEBF3; /* Latar pastel pink muda */
+            color: #444;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
+        /* Container utama untuk membagi 2 kolom (Kamera & Identitas) */
+        .container {
+            display: flex;
+            flex-direction: row;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 90%;
+            max-width: 1100px;
+            border: 3px solid #FFB6C1; /* Bingkai luar pink pastel */
         }
 
-        #container {
+        /* --- Kolom Kiri: Kamera --- */
+        .camera-section {
+            flex: 1.5; /* Mengambil ruang sedikit lebih besar dari kolom kanan */
+            background-color: #000;
             position: relative;
             display: flex;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            border-radius: 8px;
-            overflow: hidden;
+            min-height: 400px;
         }
 
-        video, canvas {
-            border-radius: 8px;
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Efek cermin agar gerakan tangan terasa natural */
         }
 
-        /* Menumpuk kanvas di atas video */
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
+        /* --- Kolom Kanan: Identitas --- */
+        .identity-section {
+            flex: 1;
+            background-color: #EBF8FF; /* Latar kolom identitas biru pastel muda */
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-left: 4px solid #87CEEB; /* Garis pemisah biru pastel */
         }
 
-        #status {
-            margin-top: 15px;
-            font-size: 1.1em;
+        .name {
+            font-size: 36px;
+            font-weight: 800;
+            color: #FF6B81; /* Pink tua / semangka agar nama menonjol */
+            margin-bottom: 5px;
+            line-height: 1.2;
+        }
+
+        .role {
+            font-size: 22px;
+            font-weight: 600;
             color: #555;
+            margin-bottom: 10px;
+        }
+
+        .school {
+            font-size: 18px;
+            color: #777;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+
+        /* Status koneksi kamera */
+        .status {
+            padding: 12px 15px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid #bce2f5;
+            font-weight: 500;
+        }
+
+        /* --- Responsif: Berubah menjadi atas-bawah di layar kecil (HP/Tablet) --- */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                margin: 20px 0;
+            }
+            .camera-section {
+                min-height: 300px;
+            }
+            .identity-section {
+                border-left: none;
+                border-top: 4px solid #87CEEB;
+                text-align: center;
+                padding: 40px 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <h1>Deteksi Wajah & Jenis Kelamin Real-Time</h1>
-    
-    <div id="container">
-        <!-- Elemen Video untuk Aliran Kamera -->
-        <video id="video" width="720" height="560" autoplay muted playsinline></video>
-        <!-- Elemen Kanvas untuk Menggambar Hasil -->
-        <canvas id="canvas"></canvas>
+    <div class="container">
+        <!-- Bagian Kiri: Kamera Live -->
+        <div class="camera-section">
+            <video id="webcam" autoplay playsinline muted></video>
+        </div>
+
+        <!-- Bagian Kanan: Identitas Guru -->
+        <div class="identity-section">
+            <div class="name">Yani Indriyani</div>
+            <div class="role">Guru Fisika</div>
+            <div class="school">SMPK 1 Bina Bakti Bandung</div>
+            
+            <div class="status" id="statusText">⏳ Meminta akses kamera...</div>
+        </div>
     </div>
 
-    <div id="status">Memuat model... Harap tunggu.</div>
-
     <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const statusDiv = document.getElementById('status');
+        // Fungsi untuk menyalakan kamera
+        async function startCamera() {
+            const videoElement = document.getElementById('webcam');
+            const statusText = document.getElementById('statusText');
 
-        // Memuat model dari folder 'models' lokal
-        async function loadModels() {
-            const MODEL_URL = '/models'; // Sesuaikan jika folder model Anda berbeda
-            statusDiv.innerText = 'Memuat model: Deteksi Wajah...';
-            await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-            statusDiv.innerText = 'Memuat model: Landmark Wajah...';
-            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-            statusDiv.innerText = 'Memuat model: Prediksi Jenis Kelamin...';
-            await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
-            statusDiv.innerText = 'Model dimuat. Meminta akses kamera...';
-            startVideo();
+            try {
+                // Meminta akses resolusi HD (720p)
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
+                    audio: false 
+                });
+                
+                // Memasukkan aliran video ke elemen HTML
+                videoElement.srcObject = stream;
+                statusText.innerHTML = "✅ Kamera berhasil terhubung.";
+                statusText.style.color = "#4CAF50";
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                statusText.innerHTML = "❌ Gagal mengakses kamera. Pastikan izin telah diberikan.";
+                statusText.style.color = "#f44336";
+            }
         }
 
-        // Meminta akses ke webcam
-        function startVideo() {
-            navigator.mediaDevices.getUserMedia({ video: {} })
-                .then(stream => {
-                    video.srcObject = stream;
-                    statusDiv.innerText = 'Kamera aktif. Melakukan deteksi...';
-                })
-                .catch(err => {
-                    console.error("Gagal mengakses kamera:", err);
-                    statusDiv.innerHTML = '<span style="color:red">Gagal mengakses kamera. Pastikan Anda memberikan izin.</span>';
-                });
-        }
-
-        // Melakukan deteksi dan menggambar hasil setiap kali video diputar
-        video.addEventListener('play', () => {
-            const displaySize = { width: video.width, height: video.height };
-            // Menyesuaikan ukuran kanvas dengan ukuran video
-            faceapi.matchDimensions(canvas, displaySize);
-
-            // Loop deteksi real-time
-            const detectionLoop = async () => {
-                // Mendeteksi semua wajah, landmark, dan jenis kelamin
-                const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options())
-                    .withFaceLandmarks()
-                    .withAgeAndGender();
-
-                // Menyesuaikan hasil deteksi dengan ukuran tampilan
-                const resizedDetections = faceapi.resizeResults(detections, displaySize);
-
-                // Membersihkan kanvas sebelum menggambar bingkai baru
-                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-
-                // Menggambar hasil ke kanvas
-                resizedDetections.forEach(detection => {
-                    const box = detection.detection.box;
-                    const gender = detection.gender;
-                    const genderProbability = detection.genderProbability;
-                    const age = Math.round(detection.age); // Juga mendapatkan prediksi usia
-
-                    // Menentukan teks label
-                    const label = `${gender} (${Math.round(genderProbability * 100)}%)`;
-                    // Atau gunakan yang ini untuk menyertakan usia:
-                    // const label = `${gender}, ~${age} tahun (${Math.round(genderProbability * 100)}%)`;
-
-                    // Menggambar kotak pembatas wajah
-                    new faceapi.draw.DrawBox(box, { label: label }).draw(canvas);
-
-                    // Menggambar landmark wajah (opsional)
-                    // faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-                });
-
-                // Meminta bingkai berikutnya
-                requestAnimationFrame(detectionLoop);
-            };
-
-            detectionLoop();
-        });
-
-        // Memulai proses
-        loadModels();
-
+        // Jalankan script saat halaman web selesai dimuat
+        window.addEventListener('DOMContentLoaded', startCamera);
     </script>
+
 </body>
 </html>
